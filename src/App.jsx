@@ -29,7 +29,7 @@ const PRODUCTS = [
     material: "PLA",
     color: "Gold",
     printedOn: "2025-08-12",
-    image: "images/elephant-ring-holder.JPG", // remove leading slash
+    image: "images/elephant-ring-holder.JPG",
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -132,7 +132,6 @@ function resolveImage(url) {
 }
 
 function ProductCard({ item }) {
-  // build full URL including base path for public assets
   const base = import.meta.env.BASE_URL;
   const localSrc = item.image.startsWith("images/")
     ? `${base}${item.image}`
