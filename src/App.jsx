@@ -6,7 +6,6 @@
 import React, { useMemo, useState } from "react";
 
 // Convert Google Drive share links to a direct image URL when needed.
-// Works with: /file/d/<id>/view, /open?id=<id>, /uc?export=view&id=<id>
 function driveToImgSrc(url) {
   if (!url) return url;
   if (!url.includes("drive.google.com")) return url; // not a Drive link
@@ -14,7 +13,6 @@ function driveToImgSrc(url) {
   const m2 = url.match(/[?&]id=([^&]+)/);
   const id = (m1 && m1[1]) || (m2 && m2[1]) || "";
   if (!id) return url;
-  // googleusercontent reliably serves image bytes
   return `https://lh3.googleusercontent.com/d/${id}=w1600`;
 }
 
@@ -23,7 +21,6 @@ const PLACEHOLDER_SVG =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'><rect width='800' height='600' fill='%23e2e8f0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='24' fill='%2364748b'>Image unavailable</text></svg>";
 
 const PRODUCTS = [
-  // Use your own filenames in public/images/*.*
   {
     id: 1,
     title: "Elephant Ring Holder",
@@ -32,7 +29,7 @@ const PRODUCTS = [
     material: "PLA",
     color: "Gold",
     printedOn: "2025-08-12",
-    image: "/images/elephant-ring-holder.JPG", // <- local file
+    image: "images/elephant-ring-holder.JPG", // remove leading slash
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -43,7 +40,7 @@ const PRODUCTS = [
     material: "PLA",
     color: "Yellow",
     printedOn: "2025-09-02",
-    image: "/images/articulated-banana.jpg",
+    image: "images/articulated-banana.jpg",
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -54,7 +51,7 @@ const PRODUCTS = [
     material: "PLA+",
     color: "Rainbow",
     printedOn: "2025-07-22",
-    image: "/images/mew.jpg",
+    image: "images/mew.jpg",
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -65,7 +62,7 @@ const PRODUCTS = [
     material: "PLA",
     color: "Blue",
     printedOn: "2025-05-10",
-    image: "/images/capybara-blue.jpg",
+    image: "images/capybara-blue.jpg",
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -76,7 +73,7 @@ const PRODUCTS = [
     material: "PETG",
     color: "Pink",
     printedOn: "2025-10-01",
-    image: "/images/capybara-pink.jpg",
+    image: "images/capybara-pink.jpg",
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -87,7 +84,7 @@ const PRODUCTS = [
     material: "PLA",
     color: "White",
     printedOn: "2025-06-15",
-    image: "/images/spiral-fidget.jpg",
+    image: "images/spiral-fidget.jpg",
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -98,7 +95,7 @@ const PRODUCTS = [
     material: "PLA",
     color: "Terracotta",
     printedOn: "2025-09-18",
-    image: "/images/pekkas.jpg",
+    image: "images/pekkas.jpg",
     ebayUrl: "https://www.ebay.com",
   },
   {
@@ -109,22 +106,9 @@ const PRODUCTS = [
     material: "PETG",
     color: "Charcoal",
     printedOn: "2025-08-30",
-    image: "/images/balisong-comb.JPG",
+    image: "images/balisong-comb.JPG",
     ebayUrl: "https://www.ebay.com",
   },
-
-  // Example that still uses a Drive link — will be converted automatically:
-  // {
-  //   id: 9,
-  //   title: "Drive-hosted Example",
-  //   price: 1,
-  //   category: "Toys",
-  //   material: "PLA",
-  //   color: "Mint",
-  //   printedOn: "2025-08-12",
-  //   image: "https://drive.google.com/file/d/1KeNAhVP_x7hWIgh7sRux5m0xT4NUjfT9/view?usp=drive_link",
-  //   ebayUrl: "https://www.ebay.com",
-  // },
 ];
 
 function formatPrice(n) {
@@ -148,7 +132,11 @@ function resolveImage(url) {
 }
 
 function ProductCard({ item }) {
-  const src = resolveImage(item.image);
+  // build full URL including base path for public assets
+  const base = import.meta.env.BASE_URL;
+  const localSrc = item.image.startsWith("images/")
+    ? `${base}${item.image}`
+    : resolveImage(item.image);
 
   return (
     <a
@@ -160,9 +148,8 @@ function ProductCard({ item }) {
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
         <img
-          src={src}
+          src={localSrc}
           onError={(e) => {
-            // If Drive conversion fails, try the download endpoint once, then fallback to placeholder
             const u = item.image || "";
             const m1 = u.match(/\/file\/d\/([^/]+)/);
             const m2 = u.match(/[?&]id=([^&]+)/);
@@ -223,15 +210,16 @@ export default function App() {
     return list;
   }, [query, sort, category]);
 
+  const base = import.meta.env.BASE_URL;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              {/* Replace the emoji with your own logo */}
               <img
-                src="/images/logo.png"
+                src={`${base}images/logo.png`}
                 alt="eonion logo"
                 className="h-9 w-9 rounded-xl object-cover shadow"
               />
@@ -250,7 +238,7 @@ export default function App() {
       <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Ethan&apos;s finely printed Toys, sold on eBay
+            Ethan’s finely printed Toys, sold on eBay
           </h1>
           <p className="mt-2 max-w-2xl text-slate-600">
             Browse the gallery below. Click any item to jump straight to its eBay listing and checkout there.
